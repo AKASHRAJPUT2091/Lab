@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cat Selector</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 0;
+        }
+        h1 {
+            text-align: center;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            text-align: center;
+        }
+        .input-section, .result-section {
+            margin: 20px 0;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+        .result-section {
+            padding: 10px;
+            border: 1px solid #ccc;
+            min-height: 50px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Cat Selector</h1>
+
+    <div class="container">
+        <!-- All Names Button -->
+        <div class="input-section">
+            <button id="allNamesBtn">All Names</button>
+        </div>
+
+        <!-- Health Issues Input -->
+        <div class="input-section">
+            <label for="healthIssue">Health Issue:</label>
+            <input type="number" id="healthIssue" placeholder="Enter issue number">
+            <button id="healthIssueBtn">Search</button>
+        </div>
+
+        <!-- Weight Button with Imperial/Metric toggle -->
+        <div class="input-section">
+            <button id="weightBtn">Weight (Imperial)</button>
+            <input type="radio" id="imperial" name="unit" value="imperial" checked>
+            <label for="imperial">Imperial</label>
+            <input type="radio" id="metric" name="unit" value="metric">
+            <label for="metric">Metric</label>
+        </div>
+
+        <!-- Intelligence and Friendly Factor Button -->
+        <div class="input-section">
+            <button id="intelligenceFriendlyBtn">Intelligence – Friendly</button>
+        </div>
+
+        <!-- Average Intelligence Button -->
+        <div class="input-section">
+            <button id="avgIntelligenceBtn">Average Intelligence</button>
+        </div>
+
+        <!-- Average Intelligence for Child Friendly Button -->
+        <div class="input-section">
+            <button id="avgChildFriendlyIntelligenceBtn">Average Intelligence for Child Friendly</button>
+        </div>
+
+        <!-- Display Results -->
+        <div class="result-section" id="result">
+            <h3>Results will appear here</h3>
+        </div>
+    </div>
+
+    <script>
+        // Fetch cat data from TheCatAPI
+        let catData = [];
+
+        fetch('https://api.thecatapi.com/v1/breeds')
+            .then(response => response.json())
+            .then(data => {
+                catData = data;
+            })
+            .catch(error => console.error('Error fetching cat data:', error));
+
+        // All Names Button
+        document.getElementById("allNamesBtn").addEventListener("click", function() {
+            const names = catData.map(cat => cat.name).join('<br>'); // Display in vertical list
+            document.getElementById("result").innerHTML = "<strong>Cat Names:</strong><br>" + names;
+        });
+
+        // Health Issues Search
+        document.getElementById("healthIssueBtn").addEventListener("click", function() {
+            const issueNumber = parseInt(document.getElementById("healthIssue").value);
+            const filteredCats = catData.filter(cat => cat.health_issues === issueNumber).map(cat => cat.name).join(', ');
+            document.getElementById("result").innerHTML = `<strong>Cats with Health Issue #${issueNumber}:</strong> ` + (filteredCats || 'None');
+        });
+
+        // Weight Button
+        document.getElementById("weightBtn").addEventListener("click", function() {
+            const unit = document.querySelector('input[name="unit"]:checked').value;
+            const weights = catData.map(cat => `${cat.name}: ${unit === 'imperial' ? cat.weight.imperial : cat.weight.metric}`).join('<br>');
+            document.getElementById("result").innerHTML = "<strong>Cat Weights (" + (unit === 'imperial' ? 'Imperial' : 'Metric') + "):</strong><br>" + weights;
+        });
+
+        // Intelligence – Friendly Button
+        document.getElementById("intelligenceFriendlyBtn").addEventListener("click", function() {
+            let table = "<table><tr><th>Cat Name</th><th>Intelligence (I)</th><th>Child Friendly (F)</th></tr>";
+            catData.forEach(cat => {
+                table += `<tr><td>${cat.name}</td><td>${cat.intelligence}</td><td>${cat.child_friendly}</td></tr>`;
+            });
+            table += "</table>";
+            document.getElementById("result").innerHTML = table;
+        });
+
+        // Average Intelligence Button
+        document.getElementById("avgIntelligenceBtn").addEventListener("click", function() {
+            const avgIntelligence = (catData.reduce((sum, cat) => sum + (cat.intelligence || 0), 0) / catData.length).toFixed(2);
+            document.getElementById("result").innerHTML = "<strong>Average Intelligence of All Cats:</strong> " + avgIntelligence;
+        });
+
+        // Average Intelligence for Child Friendly Button
+        document.getElementById("avgChildFriendlyIntelligenceBtn").addEventListener("click", function() {
+            const childFriendlyCats = catData.filter(cat => cat.child_friendly >= 4);
+            const avgIntelligence = (childFriendlyCats.reduce((sum, cat) => sum + (cat.intelligence || 0), 0) / childFriendlyCats.length).toFixed(2);
+            document.getElementById("result").innerHTML = "<strong>Average Intelligence of Child-Friendly Cats:</strong> " + avgIntelligence;
+        });
+    </script>
+</body>
+</html>
+
